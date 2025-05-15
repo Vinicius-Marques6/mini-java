@@ -49,7 +49,7 @@ enum Names
     RETURN,
     STATIC,
     STRING,
-    SYSTE_OUT_PRINTLN,
+    SYSTEM_OUT_PRINTLN,
     THIS,
     TRUE,
     VOID,

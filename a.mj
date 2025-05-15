@@ -1,0 +1,14 @@
+int a = 2;
+int b = 4;
+
+int num1 = 10;
+
+int c = a + b; // Claramente um comentário
+
+/* Um outro comentário
+mas agora ele é de linha
+*/
+
+if (c == 3 && c > 0) {
+    System.out.println(c);
+}  
