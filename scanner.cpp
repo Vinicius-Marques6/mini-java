@@ -216,51 +216,57 @@ Scanner::nextToken()
     // Identificadores e palavras reservadas
     else if (isalpha(input[pos]) || input[pos] == '_')
     {
-        while (isalnum(input[pos]) || input[pos] == '_')
+        if (input.substr(pos, 18) == "System.out.println")
         {
-            lexeme += input[pos];
-            pos++;
-        }
-        if (lexeme == "boolean")
-            tok = new Token(BOOLEAN);
-        else if (lexeme == "class")
-            tok = new Token(CLASS);
-        else if (lexeme == "else")
-            tok = new Token(ELSE);
-        else if (lexeme == "extends")
-            tok = new Token(EXTENDS);
-        else if (lexeme == "false")
-            tok = new Token(FALSE);
-        else if (lexeme == "if")
-            tok = new Token(IF);
-        else if (lexeme == "int")
-            tok = new Token(INT);
-        else if (lexeme == "length")
-            tok = new Token(LENGTH);
-        else if (lexeme == "main")
-            tok = new Token(MAIN);
-        else if (lexeme == "new")
-            tok = new Token(NEW);
-        else if (lexeme == "public")
-            tok = new Token(PUBLIC);
-        else if (lexeme == "return")
-            tok = new Token(RETURN);
-        else if (lexeme == "static")
-            tok = new Token(STATIC);
-        else if (lexeme == "String")
-            tok = new Token(STRING);
-        else if (lexeme == "System.out.println")
+            pos += 18;
             tok = new Token(SYSTEM_OUT_PRINTLN);
-        else if (lexeme == "this")
-            tok = new Token(THIS);
-        else if (lexeme == "true")
-            tok = new Token(TRUE);
-        else if (lexeme == "void")
-            tok = new Token(VOID);
-        else if (lexeme == "while")
-            tok = new Token(WHILE);
+        }
         else
-            tok = new Token(ID, lexeme);
+        {
+            while (isalnum(input[pos]) || input[pos] == '_')
+            {
+                lexeme += input[pos];
+                pos++;
+            }
+            if (lexeme == "boolean")
+                tok = new Token(BOOLEAN);
+            else if (lexeme == "class")
+                tok = new Token(CLASS);
+            else if (lexeme == "else")
+                tok = new Token(ELSE);
+            else if (lexeme == "extends")
+                tok = new Token(EXTENDS);
+            else if (lexeme == "false")
+                tok = new Token(FALSE);
+            else if (lexeme == "if")
+                tok = new Token(IF);
+            else if (lexeme == "int")
+                tok = new Token(INT);
+            else if (lexeme == "length")
+                tok = new Token(LENGTH);
+            else if (lexeme == "main")
+                tok = new Token(MAIN);
+            else if (lexeme == "new")
+                tok = new Token(NEW);
+            else if (lexeme == "public")
+                tok = new Token(PUBLIC);
+            else if (lexeme == "return")
+                tok = new Token(RETURN);
+            else if (lexeme == "static")
+                tok = new Token(STATIC);
+            else if (lexeme == "String")
+                tok = new Token(STRING);
+            else if (lexeme == "this")
+                tok = new Token(THIS);
+            else if (lexeme == "true")
+                tok = new Token(TRUE);
+            else if (lexeme == "void")
+                tok = new Token(VOID);
+            else if (lexeme == "while")
+                tok = new Token(WHILE);
+            else
+                tok = new Token(ID, lexeme);
+        }
     }
     // Inteiros
     else if (isdigit(input[pos]))
