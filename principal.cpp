@@ -1,4 +1,4 @@
-#include "scanner.h"
+#include "parser.h"
 
 int main(int argc, char* argv[]) 
 {
@@ -11,22 +11,9 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    string input;
-    
-    //getline(cin, input);
+    Parser* parser = new Parser(argv[1]);
 
-    Scanner* scanner = new Scanner(argv[1]);
-    
-    Token* t;
-    
-    do
-    {
-        t = scanner->nextToken();
-        
-        cout << t->name << " ";
-    }while (t->name != END_OF_FILE);
-
-    delete scanner;
+    parser->run();
     
     return 0;
 }
