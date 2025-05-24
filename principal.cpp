@@ -11,6 +11,19 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    Scanner* scanner = new Scanner(argv[1]);
+
+    Token* t;
+    
+    do
+    {
+        t = scanner->nextToken();
+        
+        cout << t->name << " ";
+    }while (t->name != END_OF_FILE);
+    cout << endl;
+    delete scanner;
+
     Parser* parser = new Parser(argv[1]);
 
     parser->run();

@@ -1,0 +1,26 @@
+class Teste
+{
+    public static void main (String[] args) {
+        // Verifica statments
+        if ( true == true ) {
+            while ( true ) {
+                System.out.println(10);
+            }
+        }
+        else {
+            a = false;
+        }
+
+        // Verifica expressions
+        b = 2;
+        b = true;
+        b = false;
+        b = c;
+        b = this;
+        b = new int[1+1];
+        b = new e();
+        b = !b;
+        b = 23+(48*23);
+        b = c[2/1];
+    }
+}

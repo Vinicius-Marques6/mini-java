@@ -15,5 +15,9 @@ class Parser
         void program();
         void mainClass();
         //Continuar....
+		void statement();
+		void expr();
+		void exprLinha();
+		void classDeclaration();
         void error(string);
 };

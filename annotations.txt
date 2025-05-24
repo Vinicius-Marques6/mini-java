@@ -1,0 +1,93 @@
+E -> E Op E
+   | E [ E ]
+   | E . length
+   | E . ID ( (ExpressionsList)? )
+   | INT
+   | true
+   | false
+   | ID
+   | this
+   | new int [ Expression ]
+   | new ID ()
+   | ! Expression
+   | ( Expression )
+
+Tirando recursão à esquerda:
+
+E -> INT E'
+   | true E'
+   | false E'
+   | ID E'
+   | this E'
+   | new int [ Expression ] E'
+   | new ID () E'
+   | ! Expression E'
+   | ( Expression ) E'
+
+E' -> Op E E'
+    | [ E ] E'
+    | . length E'
+    | . ID ( (ExpressionsList)? ) E'
+    | e
+
+Remover ambiguidade no E':
+
+E' -> Op E E'
+    | [ E ] E'
+    | . length E'
+    | . ID ( (ExpressionsList)? ) E'
+    | e
+-----
+E' -> Op E E'
+    | [ E ] E'
+    | . DotSuffix
+    | e
+
+DotSuffix -> length E'
+     | ID ( (ExpressionsList)? ) E'
+
+Remover ambiguidade no E:
+E -> INT E'
+   | true E'
+   | false E'
+   | ID E'
+   | this E'
+   | new int [ Expression ] E'
+   | new ID () E'
+   | ! Expression E'
+   | ( Expression ) E'
+------
+E -> INT E'
+   | true E'
+   | false E'
+   | ID E'
+   | this E'
+   | new NewSuffix
+   | new NewSuffix
+   | ! Expression E'
+   | ( Expression ) E'
+
+NewSuffix -> int [ Expression ] E'
+   | ID () E'
+
+Final:
+E -> INT E'
+   | true E'
+   | false E'
+   | ID E'
+   | this E'
+   | new NewSuffix
+   | new NewSuffix
+   | ! Expression E'
+   | ( Expression ) E'
+
+NewSuffix -> int [ E ] E'
+   | ID () E'
+
+E' -> Op E E'
+    | [ E ] E'
+    | . DotSuffix
+    | e
+
+DotSuffix -> length E'
+     | ID ( (ExpressionsList)? ) E'
