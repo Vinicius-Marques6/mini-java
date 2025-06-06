@@ -9,6 +9,7 @@ Scanner::Scanner(string input)
          << input.length() << endl;*/
     pos = 0;
     line = 1;
+    column = 1;
 
     ifstream inputFile(input, ios::in);
     string line;
@@ -27,7 +28,7 @@ Scanner::Scanner(string input)
     //A próxima linha deve ser comentada posteriormente.
     //Ela é utilizada apenas para verificar se o 
     //preenchimento de input foi feito corretamente.
-    cout << this->input;
+    //cout << this->input;
 
 }
 
@@ -35,6 +36,20 @@ int
 Scanner::getLine()
 {
     return line;
+}
+
+int
+Scanner::getColumn()
+{
+    int column = 0;
+    for (int i = 0; i < pos; i++)
+    {
+        if (input[i] == '\n')
+            column = 0;
+        else
+            column++;
+    }
+    return column;
 }
 
 //Método que retorna o próximo token da entrada
@@ -50,12 +65,13 @@ Scanner::nextToken()
         {
             line++;
             pos++;
+            column = 1;
             continue;
         }
     
         while(isspace(input[pos]))
         {
-            pos++;
+            advance();
         }
     
         // Comentários
@@ -63,7 +79,7 @@ Scanner::nextToken()
         {
             while (input[pos] != '\n' && input[pos] != '\0')
             {
-                pos++;
+                advance();
             }
             continue;
         }
@@ -83,7 +99,7 @@ Scanner::nextToken()
                 }
                 if (input[pos] == '\n')
                     line++;
-                pos++;
+                advance();
             }
             continue;
         }
@@ -98,41 +114,41 @@ Scanner::nextToken()
     // Operadores aritméticos
     else if (input[pos] == '+')
     {
-        pos++;
+        advance();
         tok = new Token(PLUS);
     }
     else if (input[pos] == '-')
     {
-        pos++;
+        advance();
         tok = new Token(MINUS);
     }
     else if (input[pos] == '*')
     {
-        pos++;
+        advance();
         tok = new Token(MULTIPLY);
     }
     else if (input[pos] == '/')
     {
-        pos++;
+        advance();
         tok = new Token(DIVIDE);
     }
     // Operadores lógicos
     else if (input[pos] == '<')
     {
-        pos++;
+        advance();
         tok = new Token(LT);
     }
     else if (input[pos] == '>')
     {
-        pos++;
+        advance();
         tok = new Token(GT);
     }
     else if (input[pos] == '=')
     {
-        pos++;
+        advance();
         if (input[pos] == '=')
         {
-            pos++;
+            advance();
             tok = new Token(EQUAL);
         }
         else
@@ -142,10 +158,10 @@ Scanner::nextToken()
     }
     else if (input[pos] == '!')
     {
-        pos++;
+        advance();
         if (input[pos] == '=')
         {
-            pos++;
+            advance();
             tok = new Token(NOT_EQUAL);
         }
         else
@@ -155,10 +171,10 @@ Scanner::nextToken()
     }
     else if (input[pos] == '&')
     {
-        pos++;
+        advance();
         if (input[pos] == '&')
         {
-            pos++;
+            advance();
             tok = new Token(AND);
         }
         else
@@ -169,47 +185,47 @@ Scanner::nextToken()
     // Separadores
     else if (input[pos] == '(')
     {
-        pos++;
+        advance();
         tok = new Token(LPAREN);
     }
     else if (input[pos] == ')')
     {
-        pos++;
+        advance();
         tok = new Token(RPAREN);
     }
     else if (input[pos] == '{')
     {
-        pos++;
+        advance();
         tok = new Token(LBRACE);
     }
     else if (input[pos] == '}')
     {
-        pos++;
+        advance();
         tok = new Token(RBRACE);
     }
     else if (input[pos] == '[')
     {
-        pos++;
+        advance();
         tok = new Token(LBRACKET);
     }
     else if (input[pos] == ']')
     {
-        pos++;
+        advance();
         tok = new Token(RBRACKET);
     }
     else if (input[pos] == ';')
     {
-        pos++;
+        advance();
         tok = new Token(SEMICOLON);
     }
     else if (input[pos] == '.')
     {
-        pos++;
+        advance();
         tok = new Token(DOT);
     }
     else if (input[pos] == ',')
     {
-        pos++;
+        advance();
         tok = new Token(COMMA);
     }
 
@@ -226,7 +242,7 @@ Scanner::nextToken()
             while (isalnum(input[pos]) || input[pos] == '_')
             {
                 lexeme += input[pos];
-                pos++;
+                advance();
             }
             if (lexeme == "boolean")
                 tok = new Token(BOOLEAN, lexeme);
@@ -274,7 +290,7 @@ Scanner::nextToken()
         while (isdigit(input[pos]))
         {
             lexeme += input[pos];
-            pos++;
+            advance();
         }
         tok = new Token(INTEGER, lexeme);
     }
@@ -286,6 +302,13 @@ Scanner::nextToken()
 
     return tok;
 
+}
+
+void
+Scanner::advance()
+{
+    pos++;
+    column++;
 }
 
 void 
