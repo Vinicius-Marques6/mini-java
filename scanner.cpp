@@ -4,18 +4,19 @@
 //de entrada e preenche input com seu conteúdo.
 Scanner::Scanner(string input)
 {
+    fileName = input;
     /*this->input = input;
     cout << "Entrada: " << input << endl << "Tamanho: " 
          << input.length() << endl;*/
     pos = 0;
     line = 1;
-    column = 1;
+    column = 0;
 
     ifstream inputFile(input, ios::in);
-    string line;
 
     if (inputFile.is_open())
     {
+        string line;
         while (getline(inputFile,line) )
         {
             this->input.append(line + '\n');
@@ -41,15 +42,13 @@ Scanner::getLine()
 int
 Scanner::getColumn()
 {
-    int column = 0;
-    for (int i = 0; i < pos; i++)
-    {
-        if (input[i] == '\n')
-            column = 0;
-        else
-            column++;
-    }
     return column;
+}
+
+std::string
+Scanner::getFileName()
+{
+    return fileName;
 }
 
 //Método que retorna o próximo token da entrada
@@ -65,7 +64,7 @@ Scanner::nextToken()
         {
             line++;
             pos++;
-            column = 1;
+            column = 0;
             continue;
         }
     
@@ -85,7 +84,7 @@ Scanner::nextToken()
         }
         else if (input[pos] == '/' && input[pos + 1] == '*')
         {
-            pos += 2;
+            advance(2);
             while (true)
             {
                 if (input[pos] == '\0')
@@ -94,11 +93,14 @@ Scanner::nextToken()
                 }
                 if (input[pos] == '*' && input[pos + 1] == '/')
                 {
-                    pos += 2;
+                    advance(2);
                     break;
                 }
                 if (input[pos] == '\n')
+                {
                     line++;
+                    column = 0;
+                }
                 advance();
             }
             continue;
@@ -115,33 +117,33 @@ Scanner::nextToken()
     else if (input[pos] == '+')
     {
         advance();
-        tok = new Token(PLUS);
+        tok = new Token(PLUS, "+");
     }
     else if (input[pos] == '-')
     {
         advance();
-        tok = new Token(MINUS);
+        tok = new Token(MINUS, "-");
     }
     else if (input[pos] == '*')
     {
         advance();
-        tok = new Token(MULTIPLY);
+        tok = new Token(MULTIPLY, "*");
     }
     else if (input[pos] == '/')
     {
         advance();
-        tok = new Token(DIVIDE);
+        tok = new Token(DIVIDE, "/");
     }
     // Operadores lógicos
     else if (input[pos] == '<')
     {
         advance();
-        tok = new Token(LT);
+        tok = new Token(LT, "<");
     }
     else if (input[pos] == '>')
     {
         advance();
-        tok = new Token(GT);
+        tok = new Token(GT, ">");
     }
     else if (input[pos] == '=')
     {
@@ -149,11 +151,11 @@ Scanner::nextToken()
         if (input[pos] == '=')
         {
             advance();
-            tok = new Token(EQUAL);
+            tok = new Token(EQUAL, "==");
         }
         else
         {
-            tok = new Token(ASSIGN);
+            tok = new Token(ASSIGN, "=");
         }
     }
     else if (input[pos] == '!')
@@ -162,11 +164,11 @@ Scanner::nextToken()
         if (input[pos] == '=')
         {
             advance();
-            tok = new Token(NOT_EQUAL);
+            tok = new Token(NOT_EQUAL, "!=");
         }
         else
         {
-            tok = new Token(NOT);
+            tok = new Token(NOT, "!");
         }
     }
     else if (input[pos] == '&')
@@ -175,7 +177,7 @@ Scanner::nextToken()
         if (input[pos] == '&')
         {
             advance();
-            tok = new Token(AND);
+            tok = new Token(AND, "&&");
         }
         else
         {
@@ -186,47 +188,47 @@ Scanner::nextToken()
     else if (input[pos] == '(')
     {
         advance();
-        tok = new Token(LPAREN);
+        tok = new Token(LPAREN, "(");
     }
     else if (input[pos] == ')')
     {
         advance();
-        tok = new Token(RPAREN);
+        tok = new Token(RPAREN, ")");
     }
     else if (input[pos] == '{')
     {
         advance();
-        tok = new Token(LBRACE);
+        tok = new Token(LBRACE, "{");
     }
     else if (input[pos] == '}')
     {
         advance();
-        tok = new Token(RBRACE);
+        tok = new Token(RBRACE, "}");
     }
     else if (input[pos] == '[')
     {
         advance();
-        tok = new Token(LBRACKET);
+        tok = new Token(LBRACKET, "[");
     }
     else if (input[pos] == ']')
     {
         advance();
-        tok = new Token(RBRACKET);
+        tok = new Token(RBRACKET, "]");
     }
     else if (input[pos] == ';')
     {
         advance();
-        tok = new Token(SEMICOLON);
+        tok = new Token(SEMICOLON, ";");
     }
     else if (input[pos] == '.')
     {
         advance();
-        tok = new Token(DOT);
+        tok = new Token(DOT, ".");
     }
     else if (input[pos] == ',')
     {
         advance();
-        tok = new Token(COMMA);
+        tok = new Token(COMMA, ",");
     }
 
     // Identificadores e palavras reservadas
@@ -234,7 +236,7 @@ Scanner::nextToken()
     {
         if (input.substr(pos, 18) == "System.out.println")
         {
-            pos += 18;
+            advance(18);
             tok = new Token(SYSTEM_OUT_PRINTLN);
         }
         else
@@ -311,10 +313,17 @@ Scanner::advance()
     column++;
 }
 
+void
+Scanner::advance(const int i)
+{
+    pos += i;
+    column += i;
+}
+
 void 
 Scanner::lexicalError(string msg)
 {
-    cout << "Linha "<< line << ": " << msg << endl;
+    cout << fileName << ":" << line << ":" << column <<": " << msg << endl;
     
     exit(EXIT_FAILURE);
 }

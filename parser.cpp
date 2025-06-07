@@ -210,7 +210,7 @@ Parser::expr()
 	}
 	else
 	{
-		error("Esperava uma expressão, encontrado '" + tokenToString(lToken->name) + "'");
+		error("Esperava uma expressão, encontrado '" + lToken->lexeme + "'");
 	}
 }
 
@@ -391,7 +391,7 @@ Parser::exprList()
 void
 Parser::error(string str)
 {
-	cout << "Linha " << scanner->getLine() << ":" << scanner->getColumn() << ": " << str << endl;	
+	cout << scanner->getFileName() << ":" << scanner->getLine() << ":" << scanner->getColumn() << ": erro" << ": " << str << endl;
 
 	exit(EXIT_FAILURE);
 }

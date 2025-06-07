@@ -3,7 +3,8 @@
 
 class Scanner 
 {
-    private: 
+    private:
+        std::string fileName; // Nome do arquivo
         string input;//Armazena o texto de entrada
         int pos;//Posição atual
         int line;
@@ -15,11 +16,14 @@ class Scanner
 
         int getLine();
         int getColumn();
+        std::string getFileName();
     
         //Método que retorna o próximo token da entrada
         Token* nextToken();
         //Método que avança para o próximo caractere
-        void advance();     
+        void advance();
+        //Método que avança para o próximo i caracteres
+        void advance(int i);
     
         //Método para manipular erros
         void lexicalError(string);
