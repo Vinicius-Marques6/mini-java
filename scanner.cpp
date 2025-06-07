@@ -81,14 +81,6 @@ Scanner::nextToken()
 
     while(true)
     {
-        if (input[pos] == '\n')
-        {
-            line++;
-            pos++;
-            column = 0;
-            continue;
-        }
-    
         while(isspace(input[pos]))
         {
             advance();
@@ -97,6 +89,7 @@ Scanner::nextToken()
         // Comentários
         if (input[pos] == '/' && input[pos + 1] == '/')
         {
+            advance(2);
             while (input[pos] != '\n' && input[pos] != '\0')
             {
                 advance();
@@ -116,11 +109,6 @@ Scanner::nextToken()
                 {
                     advance(2);
                     break;
-                }
-                if (input[pos] == '\n')
-                {
-                    line++;
-                    column = 0;
                 }
                 advance();
             }
@@ -297,15 +285,21 @@ Scanner::nextToken()
 void
 Scanner::advance()
 {
+    if (input[pos] == '\n') {
+        line++;
+        column = 0;
+    } else {
+        column++;
+    }
     pos++;
-    column++;
 }
 
 void
 Scanner::advance(const int i)
 {
-    pos += i;
-    column += i;
+    for (int j = 0; j < i; ++j) {
+        advance();
+    }
 }
 
 void 

@@ -142,7 +142,7 @@ Parser::statement()
 		match(SEMICOLON);
 	}
 	else
-		error("Erro inesperado" + lToken->lexeme);
+		error("Esperava uma instrução, encontrado '" + lToken->lexeme + "'");
 }
 
 void
@@ -191,7 +191,7 @@ Parser::expr()
 		}
 		else
 		{
-			error("Erro inesperado");
+			error("Esperava 'int' ou 'ID' após 'new', encontrado '" + lToken->lexeme + "'");
 		}
 		exprLinha();
 	}
@@ -236,7 +236,7 @@ Parser::exprLinha()
 		}
 		else
 		{
-			error("Erro inesperado" + lToken->lexeme);
+			error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
 		}
 		exprLinha();
 	}
@@ -258,28 +258,24 @@ Parser::exprLinha()
 void
 Parser::mainClass()
 {
-	if (lToken->name == CLASS)
-	{
-		advance();
-		match(ID);
-		match(LBRACE);
-		match(PUBLIC);
-		match(STATIC);
-		match(VOID);
-		match(MAIN);
-		match(LPAREN);
-		match(STRING);
-		match(LBRACKET);
-		match(RBRACKET);
-		match(ID);
-		match(RPAREN);
-		match(LBRACE);
-		statement();
-		match(RBRACE);
-		match(RBRACE);
-	}
-	else
-		error("Esperava 'class', encontrado '" + lToken->lexeme + "'");
+	match(CLASS);
+	advance();
+	match(ID);
+	match(LBRACE);
+	match(PUBLIC);
+	match(STATIC);
+	match(VOID);
+	match(MAIN);
+	match(LPAREN);
+	match(STRING);
+	match(LBRACKET);
+	match(RBRACKET);
+	match(ID);
+	match(RPAREN);
+	match(LBRACE);
+	statement();
+	match(RBRACE);
+	match(RBRACE);
 }
 
 void
@@ -333,7 +329,7 @@ Parser::type()
 		advance();
 	}
 	else
-		error("Erro inesperado no tipo");
+		error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
 }
 
 void
@@ -384,7 +380,7 @@ Parser::exprList()
 	}
 	else if (lToken->name != RPAREN)
 	{
-		error("Erro inesperado na lista de expressões");
+		error("Esperava uma expressão ou ')', encontrado '" + lToken->lexeme + "'");
 	}
 }
 
