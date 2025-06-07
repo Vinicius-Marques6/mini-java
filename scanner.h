@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unordered_map>
 #include "token.h"
 
 class Scanner 

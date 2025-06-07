@@ -1,4 +1,25 @@
-#include "scanner.h"    
+#include "scanner.h"
+
+const std::unordered_map<std::string, Names> keywords = {
+    {"boolean", BOOLEAN},
+    {"class", CLASS},
+    {"else", ELSE},
+    {"extends", EXTENDS},
+    {"false", FALSE},
+    {"if", IF},
+    {"int", INT},
+    {"length", LENGTH},
+    {"main", MAIN},
+    {"new", NEW},
+    {"public", PUBLIC},
+    {"return", RETURN},
+    {"static", STATIC},
+    {"String", STRING},
+    {"this", THIS},
+    {"true", TRUE},
+    {"void", VOID},
+    {"while", WHILE}
+};
 
 //Construtor que recebe uma string com o nome do arquivo 
 //de entrada e preenche input com seu conteúdo.
@@ -246,42 +267,9 @@ Scanner::nextToken()
                 lexeme += input[pos];
                 advance();
             }
-            if (lexeme == "boolean")
-                tok = new Token(BOOLEAN, lexeme);
-            else if (lexeme == "class")
-                tok = new Token(CLASS, lexeme);
-            else if (lexeme == "else")
-                tok = new Token(ELSE, lexeme);
-            else if (lexeme == "extends")
-                tok = new Token(EXTENDS, lexeme);
-            else if (lexeme == "false")
-                tok = new Token(FALSE, lexeme);
-            else if (lexeme == "if")
-                tok = new Token(IF, lexeme);
-            else if (lexeme == "int")
-                tok = new Token(INT, lexeme);
-            else if (lexeme == "length")
-                tok = new Token(LENGTH, lexeme);
-            else if (lexeme == "main")
-                tok = new Token(MAIN, lexeme);
-            else if (lexeme == "new")
-                tok = new Token(NEW, lexeme);
-            else if (lexeme == "public")
-                tok = new Token(PUBLIC, lexeme);
-            else if (lexeme == "return")
-                tok = new Token(RETURN, lexeme);
-            else if (lexeme == "static")
-                tok = new Token(STATIC, lexeme);
-            else if (lexeme == "String")
-                tok = new Token(STRING, lexeme);
-            else if (lexeme == "this")
-                tok = new Token(THIS, lexeme);
-            else if (lexeme == "true")
-                tok = new Token(TRUE, lexeme);
-            else if (lexeme == "void")
-                tok = new Token(VOID, lexeme);
-            else if (lexeme == "while")
-                tok = new Token(WHILE, lexeme);
+            auto it = keywords.find(lexeme);
+            if (it != keywords.end())
+                tok = new Token(it->second, lexeme);
             else
                 tok = new Token(ID, lexeme);
         }
