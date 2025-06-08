@@ -11,13 +11,61 @@ Parser::advance()
 	lToken = scanner->nextToken();
 }
 
+std::string tokenToString(int t) {
+	switch (t) {
+		case END_OF_FILE: return "EOF";
+		case LBRACE: return "{";
+		case RBRACE: return "}";
+		case IF: return "if";
+		case ELSE: return "else";
+		case WHILE: return "while";
+		case SYSTEM_OUT_PRINTLN: return "System.out.println";
+		case ID: return "id";
+		case INTEGER: return "int";
+		case TRUE: return "true";
+		case FALSE: return "false";
+		case THIS: return "this";
+		case NEW: return "new";
+		case NOT: return "!";
+		case LPAREN: return "(";
+		case RPAREN: return ")";
+		case LBRACKET: return "[";
+		case RBRACKET: return "]";
+		case ASSIGN: return "=";
+		case SEMICOLON: return ";";
+		case DOT: return ".";
+		case LENGTH: return "length";
+		case PLUS: return "+";
+		case MINUS: return "-";
+		case MULTIPLY: return "*";
+		case DIVIDE: return "/";
+		case AND: return "&&";
+		case LT: return "<";
+		case GT: return ">";
+		case EQUAL: return "==";
+		case NOT_EQUAL: return "!=";
+		case CLASS: return "class";
+		case PUBLIC: return "public";
+		case STATIC: return "static";
+		case VOID: return "void";
+		case MAIN: return "main";
+		case STRING: return "String";
+		case EXTENDS: return "extends";
+		case INT: return "int";
+		case BOOLEAN: return "boolean";
+		case RETURN: return "return";
+		case COMMA: return ",";
+		default: return "undef";
+	}
+}
+
 void
 Parser::match(int t)
 {
 	if (lToken->name == t || lToken->attribute == t)
 		advance();
 	else
-		error("Erro inesperado");
+		error("Esperava '" + tokenToString(t) + "', encontrado '" + lToken->lexeme + "'");
 }
 
 void
@@ -94,7 +142,7 @@ Parser::statement()
 		match(SEMICOLON);
 	}
 	else
-		error("Erro inesperado" + lToken->lexeme);
+		error("Esperava uma instrução, encontrado '" + lToken->lexeme + "'");
 }
 
 void
@@ -143,7 +191,7 @@ Parser::expr()
 		}
 		else
 		{
-			error("Erro inesperado");
+			error("Esperava 'int' ou 'ID' após 'new', encontrado '" + lToken->lexeme + "'");
 		}
 		exprLinha();
 	}
@@ -162,7 +210,7 @@ Parser::expr()
 	}
 	else
 	{
-		error("Erro inesperado" + lToken->lexeme);
+		error("Esperava uma expressão, encontrado '" + lToken->lexeme + "'");
 	}
 }
 
@@ -180,12 +228,15 @@ Parser::exprLinha()
 		{
 			advance();
 			match(LPAREN);
-			// TODO: (ExpressionsList)?
+			if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+			{
+				exprList();
+			}
 			match(RPAREN);
 		}
 		else
 		{
-			error("Erro inesperado" + lToken->lexeme);
+			error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
 		}
 		exprLinha();
 	}
@@ -207,34 +258,29 @@ Parser::exprLinha()
 void
 Parser::mainClass()
 {
-	if (lToken->name == CLASS)
-	{
-		advance();
-		match(ID);
-		match(LBRACE);
-		match(PUBLIC);
-		match(STATIC);
-		match(VOID);
-		match(MAIN);
-		match(LPAREN);
-		match(STRING);
-		match(LBRACKET);
-		match(RBRACKET);
-		match(ID);
-		match(RPAREN);
-		match(LBRACE);
-		statement();
-		match(RBRACE);
-		match(RBRACE);
-	}
-	else
-		error("Esperado 'class' no início do programa");
+	match(CLASS);
+	match(ID);
+	match(LBRACE);
+	match(PUBLIC);
+	match(STATIC);
+	match(VOID);
+	match(MAIN);
+	match(LPAREN);
+	match(STRING);
+	match(LBRACKET);
+	match(RBRACKET);
+	match(ID);
+	match(RPAREN);
+	match(LBRACE);
+	statement();
+	match(RBRACE);
+	match(RBRACE);
 }
 
 void
 Parser::classDeclaration()
 {
-	advance();
+	match(CLASS);
 	match(ID);
 	if (lToken->name == EXTENDS)
 	{
@@ -242,16 +288,111 @@ Parser::classDeclaration()
 		match(ID);
 	}
 	match(LBRACE);
+	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+    {
+        varDeclaration();
+    }
+    while (lToken->name == PUBLIC)
+    {
+        methodDeclaration();
+    }
+    match(RBRACE);
+}
+
+void
+Parser::varDeclaration()
+{
+	type();
+	match(ID);
+	match(SEMICOLON);
+}
+
+void
+Parser::type()
+{
+	if (lToken->name == INT)
+	{
+		advance();
+		if (lToken->name == LBRACKET)
+		{
+			advance();
+			match(RBRACKET);
+		}
+	}
+	else if (lToken->name == BOOLEAN)
+	{
+		advance();
+	}
+	else if (lToken->name == ID)
+	{
+		advance();
+	}
+	else
+		error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
+}
+
+void
+Parser::methodDeclaration()
+{
+	match(PUBLIC);
+	type();
+	match(ID);
+	match(LPAREN);
+	if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+	{
+		type();
+		match(ID);
+		while (lToken->name == COMMA)
+		{
+			advance();
+			type();
+			match(ID);
+		}
+	}
+	match(RPAREN);
+	match(LBRACE);
+	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+	{
+		varDeclaration();
+	}
 	while (lToken->name != RBRACE)
 	{
-		//TODO: (VarDeclaration)* (MethodDeclaration)*
+		statement();
+	}
+	match(RETURN);
+	expr();
+	match(SEMICOLON);
+	match(RBRACE);
+}
+
+void
+Parser::exprList()
+{
+	if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+	{
+		expr();
+		while (lToken->name == COMMA)
+		{
+			advance();
+			expr();
+		}
+	}
+	else if (lToken->name != RPAREN)
+	{
+		error("Esperava uma expressão ou ')', encontrado '" + lToken->lexeme + "'");
 	}
 }
 
 void
 Parser::error(string str)
 {
-	cout << "Linha " << scanner->getLine() << ": " << str << endl;
+	const int line = scanner->getLine();
+	const int column = scanner->getColumn();
+
+	cout << scanner->getFileName() << ":" << line << ":" << column << ": erro" << ": " << str << endl;
+
+    cout << setw(5) << line << " | " << scanner->getLineInput(line);
+    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
 
 	exit(EXIT_FAILURE);
 }

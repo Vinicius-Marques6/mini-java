@@ -1,4 +1,7 @@
+#pragma once
+
 #include "scanner.h"
+#include <iomanip>
 
 class Parser
 {
@@ -19,5 +22,9 @@ class Parser
 		void expr();
 		void exprLinha();
 		void classDeclaration();
+		void varDeclaration();
+		void methodDeclaration();
+		void type();
+		void exprList();
         void error(string);
 };
