@@ -1,6 +1,6 @@
 #include "scanner.h"
 
-const std::unordered_map<std::string, Names> keywords = {
+const unordered_map<string, Names> keywords = {
     {"boolean", BOOLEAN},
     {"class", CLASS},
     {"else", ELSE},
@@ -38,9 +38,12 @@ Scanner::Scanner(string input)
     if (inputFile.is_open())
     {
         string line;
+        size_t currentOffset = 0;
         while (getline(inputFile,line) )
         {
+            this->lineOffsets.push_back(currentOffset);
             this->input.append(line + '\n');
+            currentOffset = this->input.length();
         }
         inputFile.close();
     }
@@ -66,10 +69,23 @@ Scanner::getColumn()
     return column;
 }
 
-std::string
+string
 Scanner::getFileName()
 {
     return fileName;
+}
+
+string
+Scanner::getLineInput(int lineNumber)
+{
+    if (lineNumber < 1 || lineNumber > lineOffsets.size()) {
+        return "";
+    }
+    
+    size_t start = lineOffsets[lineNumber - 1];
+    size_t end = (lineNumber < lineOffsets.size()) ? lineOffsets[lineNumber] : input.length();
+    
+    return input.substr(start, end - start);
 }
 
 //Método que retorna o próximo token da entrada
@@ -306,6 +322,9 @@ void
 Scanner::lexicalError(string msg)
 {
     cout << fileName << ":" << line << ":" << column <<": " << msg << endl;
+
+    cout << setw(5) << line << " | " << getLineInput(line) << endl;
+    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
     
     exit(EXIT_FAILURE);
 }

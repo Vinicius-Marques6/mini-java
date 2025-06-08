@@ -1,4 +1,7 @@
+#pragma once
+
 #include "scanner.h"
+#include <iomanip>
 
 class Parser
 {

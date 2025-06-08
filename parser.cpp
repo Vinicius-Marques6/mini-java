@@ -259,7 +259,6 @@ void
 Parser::mainClass()
 {
 	match(CLASS);
-	advance();
 	match(ID);
 	match(LBRACE);
 	match(PUBLIC);
@@ -387,7 +386,13 @@ Parser::exprList()
 void
 Parser::error(string str)
 {
-	cout << scanner->getFileName() << ":" << scanner->getLine() << ":" << scanner->getColumn() << ": erro" << ": " << str << endl;
+	const int line = scanner->getLine();
+	const int column = scanner->getColumn();
+
+	cout << scanner->getFileName() << ":" << line << ":" << column << ": erro" << ": " << str << endl;
+
+    cout << setw(5) << line << " | " << scanner->getLineInput(line);
+    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
 
 	exit(EXIT_FAILURE);
 }
