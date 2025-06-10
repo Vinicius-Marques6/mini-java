@@ -1,29 +1,8 @@
 #include "scanner.h"
 
-const unordered_map<string, Names> keywords = {
-    {"boolean", BOOLEAN},
-    {"class", CLASS},
-    {"else", ELSE},
-    {"extends", EXTENDS},
-    {"false", FALSE},
-    {"if", IF},
-    {"int", INT},
-    {"length", LENGTH},
-    {"main", MAIN},
-    {"new", NEW},
-    {"public", PUBLIC},
-    {"return", RETURN},
-    {"static", STATIC},
-    {"String", STRING},
-    {"this", THIS},
-    {"true", TRUE},
-    {"void", VOID},
-    {"while", WHILE}
-};
-
 //Construtor que recebe uma string com o nome do arquivo 
 //de entrada e preenche input com seu conteúdo.
-Scanner::Scanner(string input)
+Scanner::Scanner(string input, SymbolTable* table)
 {
     fileName = input;
     /*this->input = input;
@@ -32,6 +11,8 @@ Scanner::Scanner(string input)
     pos = 0;
     line = 1;
     column = 0;
+
+    st = table;
 
     ifstream inputFile(input, ios::in);
 
@@ -271,11 +252,14 @@ Scanner::nextToken()
                 lexeme += input[pos];
                 advance();
             }
-            auto it = keywords.find(lexeme);
-            if (it != keywords.end())
-                tok = new Token(it->second, lexeme);
-            else
+            //Pesquisar na tabela de palavras reservadas
+            //caso encontrem, retornem o token adequado,
+            //caso contrário, é ID
+            STEntry* obj = st->get(lexeme);
+            if (!obj)
                 tok = new Token(ID, lexeme);
+            else 
+                tok = new Token(obj->token->name);
         }
     }
     // Inteiros

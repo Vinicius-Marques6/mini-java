@@ -2,7 +2,10 @@
 
 Parser::Parser(string input)
 {
-	scanner = new Scanner(input);
+	currentST = globalST = new SymbolTable();
+	initSymbolTable();
+
+	scanner = new Scanner(input, globalST);
 }
 
 void
@@ -381,6 +384,49 @@ Parser::exprList()
 	{
 		error("Esperava uma expressão ou ')', encontrado '" + lToken->lexeme + "'");
 	}
+}
+
+void
+Parser::initSymbolTable()
+{
+	Token* t;
+
+	t = new Token(BOOLEAN, "boolean");
+	globalST->add(new STEntry(t, true));
+	t = new Token(CLASS, "class");
+	globalST->add(new STEntry(t, true));
+	t = new Token(ELSE, "else");
+	globalST->add(new STEntry(t, true));
+	t = new Token(EXTENDS, "extends");
+	globalST->add(new STEntry(t, true));
+	t = new Token(FALSE, "false");
+	globalST->add(new STEntry(t, true));
+	t = new Token(IF, "if");
+	globalST->add(new STEntry(t, true));
+	t = new Token(INT, "int");
+	globalST->add(new STEntry(t, true));
+	t = new Token(LENGTH, "length");
+	globalST->add(new STEntry(t, true));
+	t = new Token(MAIN, "main");
+	globalST->add(new STEntry(t, true));
+	t = new Token(NEW, "new");
+	globalST->add(new STEntry(t, true));
+	t = new Token(PUBLIC, "public");
+	globalST->add(new STEntry(t, true));
+	t = new Token(RETURN, "return");
+	globalST->add(new STEntry(t, true));
+	t = new Token(STATIC, "static");
+	globalST->add(new STEntry(t, true));
+	t = new Token(STRING, "String");
+	globalST->add(new STEntry(t, true));
+	t = new Token(THIS, "this");
+	globalST->add(new STEntry(t, true));
+	t = new Token(TRUE, "true");
+	globalST->add(new STEntry(t, true));
+	t = new Token(VOID, "void");
+	globalST->add(new STEntry(t, true));
+	t = new Token(WHILE, "while");
+	globalST->add(new STEntry(t, true));
 }
 
 void

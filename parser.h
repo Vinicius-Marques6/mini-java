@@ -8,9 +8,12 @@ class Parser
 	private:
 		Scanner* scanner;
 		Token* lToken;
+		SymbolTable* globalST;
+    	SymbolTable* currentST;
 
 		void advance();
 		void match(int);
+		void initSymbolTable();
 		
 	public:
 		Parser(string);
