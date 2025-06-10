@@ -259,7 +259,7 @@ Scanner::nextToken()
             if (!obj)
                 tok = new Token(ID, lexeme);
             else 
-                tok = new Token(obj->token->name);
+                tok = new Token(obj->token->name, obj->token->lexeme);
         }
     }
     // Inteiros
