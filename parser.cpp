@@ -81,6 +81,7 @@ Parser::run()
 	cout << "Compilação encerrada com sucesso!\n";
 }
 
+// program -> MainClass (ClassDeclaration)* EOF
 void
 Parser::program()
 {
@@ -92,6 +93,7 @@ Parser::program()
 	}
 }
 
+// MainClass -> class ID { public static void main(String[] ID) { Statement } }
 void
 Parser::mainClass()
 {
@@ -114,6 +116,7 @@ Parser::mainClass()
 	match(RBRACE);
 }
 
+// ClassDeclaration -> class ID (extends ID)? { (VarDeclaration)* (MethodDeclaration)* }
 void
 Parser::classDeclaration()
 {
@@ -136,6 +139,7 @@ Parser::classDeclaration()
     match(RBRACE);
 }
 
+// VarDeclaration -> type ID ;
 void
 Parser::varDeclaration()
 {
@@ -144,6 +148,7 @@ Parser::varDeclaration()
 	match(SEMICOLON);
 }
 
+// MethodDeclaration -> public Type ID ( (Params)? ) { (VarDeclaration)* (Statement)* return Expr ; }
 void
 Parser::methodDeclaration()
 {
@@ -178,6 +183,7 @@ Parser::methodDeclaration()
 	match(RBRACE);
 }
 
+// Type -> int ([])? | boolean | ID
 void
 Parser::type()
 {
@@ -202,6 +208,11 @@ Parser::type()
 		error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
 }
 
+// Statement -> { (Statement)* }
+//			  | if ( Expr ) Statement else Statement
+//            | while ( Expr ) Statement
+//            | System.out.println( Expr ) ;
+//            | ID ( [ Expr ] )? = Expr ;
 void
 Parser::statement()
 {
@@ -257,6 +268,17 @@ Parser::statement()
 		error("Esperava uma instrução, encontrado '" + lToken->lexeme + "'");
 }
 
+// Expr -> INTEGER ExprLinha
+//       | true ExprLinha
+//       | false ExprLinha
+//       | ID ExprLinha
+//       | this ExprLinha
+//       | new NewSuffix ExprLinha
+//       | ! Expr ExprLinha
+//       | ( Expr ) ExprLinha
+//
+// NewSuffix -> int [ Expr ]
+//            | ID ()
 void
 Parser::expr()
 {
@@ -326,6 +348,13 @@ Parser::expr()
 	}
 }
 
+// ExprLinha -> Op Expr ExprLinha
+//            | [ Expr ] ExprLinha
+//			  | . DotSuffix ExprLinha
+// 		      | e
+//
+// DotSuffix -> length
+//            | ID ( ( ExprList )? )
 void
 Parser::exprLinha()
 {
@@ -367,6 +396,7 @@ Parser::exprLinha()
 	}
 }
 
+// ExprList -> Expr ( , Expr )*
 void
 Parser::exprList()
 {
