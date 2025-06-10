@@ -1,8 +1,7 @@
 #pragma once
 
 #include <fstream>
-#include <unordered_map>
-#include "token.h"
+#include "symboltable.h"
 #include <vector>
 #include <iomanip>
 
@@ -15,10 +14,11 @@ class Scanner
         int pos;//Posição atual
         int line;
         int column;
+        SymbolTable* st;
     
     public:
     //Construtor
-        Scanner(string);
+        Scanner(string, SymbolTable*);
 
         int getLine();
         int getColumn();

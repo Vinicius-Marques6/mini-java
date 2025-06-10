@@ -5,26 +5,28 @@
 
 class Parser
 {
-	private:
-		Scanner* scanner;
-		Token* lToken;
+    private:
+        Scanner* scanner;
+        Token* lToken;
+        SymbolTable* globalST;
+        SymbolTable* currentST;
 
-		void advance();
-		void match(int);
-		
-	public:
-		Parser(string);
-		void run();
+        void advance();
+        void match(int);
+        void initSymbolTable();
+        
+    public:
+        Parser(string);
+        void run();
         void program();
         void mainClass();
-        //Continuar....
-		void statement();
-		void expr();
-		void exprLinha();
-		void classDeclaration();
-		void varDeclaration();
-		void methodDeclaration();
-		void type();
-		void exprList();
+        void classDeclaration();
+        void varDeclaration();
+        void methodDeclaration();
+        void type();
+        void statement();
+        void expr();
+        void exprLinha();
+        void exprList();
         void error(string);
 };

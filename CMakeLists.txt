@@ -11,4 +11,8 @@ add_executable(mini_java
         principal.cpp
         scanner.cpp
         scanner.h
+        stentry.cpp
+        stentry.h
+        symboltable.cpp
+        symboltable.h
         token.h)
