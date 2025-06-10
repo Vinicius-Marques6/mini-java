@@ -92,7 +92,116 @@ Parser::program()
 	}
 }
 
-//Continuar....
+void
+Parser::mainClass()
+{
+	match(CLASS);
+	match(ID);
+	match(LBRACE);
+	match(PUBLIC);
+	match(STATIC);
+	match(VOID);
+	match(MAIN);
+	match(LPAREN);
+	match(STRING);
+	match(LBRACKET);
+	match(RBRACKET);
+	match(ID);
+	match(RPAREN);
+	match(LBRACE);
+	statement();
+	match(RBRACE);
+	match(RBRACE);
+}
+
+void
+Parser::classDeclaration()
+{
+	match(CLASS);
+	match(ID);
+	if (lToken->name == EXTENDS)
+	{
+		advance();
+		match(ID);
+	}
+	match(LBRACE);
+	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+    {
+        varDeclaration();
+    }
+    while (lToken->name == PUBLIC)
+    {
+        methodDeclaration();
+    }
+    match(RBRACE);
+}
+
+void
+Parser::varDeclaration()
+{
+	type();
+	match(ID);
+	match(SEMICOLON);
+}
+
+void
+Parser::methodDeclaration()
+{
+	match(PUBLIC);
+	type();
+	match(ID);
+	match(LPAREN);
+	if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+	{
+		type();
+		match(ID);
+		while (lToken->name == COMMA)
+		{
+			advance();
+			type();
+			match(ID);
+		}
+	}
+	match(RPAREN);
+	match(LBRACE);
+	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+	{
+		varDeclaration();
+	}
+	while (lToken->name != RBRACE)
+	{
+		statement();
+	}
+	match(RETURN);
+	expr();
+	match(SEMICOLON);
+	match(RBRACE);
+}
+
+void
+Parser::type()
+{
+	if (lToken->name == INT)
+	{
+		advance();
+		if (lToken->name == LBRACKET)
+		{
+			advance();
+			match(RBRACKET);
+		}
+	}
+	else if (lToken->name == BOOLEAN)
+	{
+		advance();
+	}
+	else if (lToken->name == ID)
+	{
+		advance();
+	}
+	else
+		error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
+}
+
 void
 Parser::statement()
 {
@@ -256,116 +365,6 @@ Parser::exprLinha()
 		match(RBRACKET);
 		exprLinha();
 	}
-}
-
-void
-Parser::mainClass()
-{
-	match(CLASS);
-	match(ID);
-	match(LBRACE);
-	match(PUBLIC);
-	match(STATIC);
-	match(VOID);
-	match(MAIN);
-	match(LPAREN);
-	match(STRING);
-	match(LBRACKET);
-	match(RBRACKET);
-	match(ID);
-	match(RPAREN);
-	match(LBRACE);
-	statement();
-	match(RBRACE);
-	match(RBRACE);
-}
-
-void
-Parser::classDeclaration()
-{
-	match(CLASS);
-	match(ID);
-	if (lToken->name == EXTENDS)
-	{
-		advance();
-		match(ID);
-	}
-	match(LBRACE);
-	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
-    {
-        varDeclaration();
-    }
-    while (lToken->name == PUBLIC)
-    {
-        methodDeclaration();
-    }
-    match(RBRACE);
-}
-
-void
-Parser::varDeclaration()
-{
-	type();
-	match(ID);
-	match(SEMICOLON);
-}
-
-void
-Parser::type()
-{
-	if (lToken->name == INT)
-	{
-		advance();
-		if (lToken->name == LBRACKET)
-		{
-			advance();
-			match(RBRACKET);
-		}
-	}
-	else if (lToken->name == BOOLEAN)
-	{
-		advance();
-	}
-	else if (lToken->name == ID)
-	{
-		advance();
-	}
-	else
-		error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
-}
-
-void
-Parser::methodDeclaration()
-{
-	match(PUBLIC);
-	type();
-	match(ID);
-	match(LPAREN);
-	if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
-	{
-		type();
-		match(ID);
-		while (lToken->name == COMMA)
-		{
-			advance();
-			type();
-			match(ID);
-		}
-	}
-	match(RPAREN);
-	match(LBRACE);
-	while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
-	{
-		varDeclaration();
-	}
-	while (lToken->name != RBRACE)
-	{
-		statement();
-	}
-	match(RETURN);
-	expr();
-	match(SEMICOLON);
-	match(RBRACE);
 }
 
 void

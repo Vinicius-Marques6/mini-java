@@ -243,7 +243,7 @@ Scanner::nextToken()
         if (input.substr(pos, 18) == "System.out.println")
         {
             advance(18);
-            tok = new Token(SYSTEM_OUT_PRINTLN);
+            tok = new Token(SYSTEM_OUT_PRINTLN, "System.out.println");
         }
         else
         {
