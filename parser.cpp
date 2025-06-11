@@ -173,7 +173,7 @@ Parser::methodDeclaration()
     {
         varDeclaration();
     }
-    while (lToken->name != RBRACE)
+    while (lToken->name != RETURN)
     {
         statement();
     }
