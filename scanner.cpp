@@ -11,6 +11,7 @@ Scanner::Scanner(string input, SymbolTable* table)
     pos = 0;
     line = 1;
     column = 0;
+    peekedToken = nullptr;
 
     st = table;
 
@@ -69,10 +70,39 @@ Scanner::getLineInput(int lineNumber)
     return input.substr(start, end - start);
 }
 
+Token*
+Scanner::peekToken()
+{
+    if (peekedToken != nullptr) {
+        return peekedToken;
+    }
+
+    // Salva a posição atual
+    int savedPos = pos;
+    int savedLine = line;
+    int savedColumn = column;
+
+    // Obtém o próximo token
+    Token* tok = nextToken();
+
+    // Restaura a posição, linha e coluna
+    pos = savedPos;
+    line = savedLine;
+    column = savedColumn;
+
+    return tok;
+}
+
 //Método que retorna o próximo token da entrada
 Token* 
 Scanner::nextToken()
 {
+    if (peekedToken != nullptr) {
+        Token* tok = peekedToken;
+        peekedToken = nullptr;
+        return tok;
+    }
+
     Token* tok;
     string lexeme;
 

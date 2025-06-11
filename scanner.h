@@ -14,6 +14,7 @@ class Scanner
         int pos;//Posição atual
         int line;
         int column;
+        Token* peekedToken;
         SymbolTable* st;
     
     public:
@@ -25,6 +26,8 @@ class Scanner
         string getFileName();
         string getLineInput(int lineNumber);
     
+        //Método que retorna o próximo token da entrada sem avançar
+        Token* peekToken();
         //Método que retorna o próximo token da entrada
         Token* nextToken();
         //Método que avança para o próximo caractere

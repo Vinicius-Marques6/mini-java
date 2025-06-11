@@ -171,6 +171,12 @@ Parser::methodDeclaration()
     match(LBRACE);
     while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
     {
+        // Pode ser que este ID seja das derivações do Statement (Statement -> ID ( [ Expr ] )? = Expr ;)
+        if(lToken->name == ID && (scanner->peekToken()->name == LBRACKET || scanner->peekToken()->name == ASSIGN))
+        {
+            break;
+        }
+
         varDeclaration();
     }
     while (lToken->name != RETURN)
