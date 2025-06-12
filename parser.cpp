@@ -178,7 +178,7 @@ Parser::methodDeclaration()
             delete peekedToken; // Libera o token que foi pego pelo peek
             break;
         }
-
+        delete peekedToken;
         varDeclaration();
     }
     while (lToken->name != RETURN)
