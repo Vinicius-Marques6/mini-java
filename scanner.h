@@ -14,7 +14,6 @@ class Scanner
         int pos;//Posição atual
         int line;
         int column;
-        Token* peekedToken;
         SymbolTable* st;
     
     public:

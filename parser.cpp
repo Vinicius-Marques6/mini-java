@@ -171,9 +171,11 @@ Parser::methodDeclaration()
     match(LBRACE);
     while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
     {
+        Token* peekedToken = scanner->peekToken();
         // Pode ser que este ID seja das derivações do Statement (Statement -> ID ( [ Expr ] )? = Expr ;)
-        if(lToken->name == ID && (scanner->peekToken()->name == LBRACKET || scanner->peekToken()->name == ASSIGN))
+        if(lToken->name == ID && (peekedToken->name == LBRACKET || peekedToken->name == ASSIGN))
         {
+            delete peekedToken; // Libera o token que foi pego pelo peek
             break;
         }
 
