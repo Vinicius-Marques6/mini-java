@@ -29,4 +29,5 @@ class Parser
         void exprLinha();
         void exprList();
         void error(string);
+        void warn(string);
 };

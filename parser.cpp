@@ -98,7 +98,13 @@ void
 Parser::mainClass()
 {
     match(CLASS);
+    Token* t = lToken;
+    if(currentST->getIdentifier(t->lexeme))
+    {
+        warn("Classe '" + t->lexeme + "' já declarada.");
+    }
     match(ID);
+    currentST->add(new STEntry(t));
     match(LBRACE);
     match(PUBLIC);
     match(STATIC);
@@ -108,11 +114,19 @@ Parser::mainClass()
     match(STRING);
     match(LBRACKET);
     match(RBRACKET);
+    t = lToken;
     match(ID);
+    if(currentST->get(t->lexeme))
+    {
+        warn("Parâmetro '" + t->lexeme + "' já declarado na função main.");
+    }
+    currentST = new SymbolTable(currentST);
+    currentST->add(new STEntry(t, true));
     match(RPAREN);
     match(LBRACE);
     statement();
     match(RBRACE);
+    currentST = currentST->getParent();
     match(RBRACE);
 }
 
@@ -121,6 +135,11 @@ void
 Parser::classDeclaration()
 {
     match(CLASS);
+    Token* t = lToken;
+    if(currentST->getIdentifier(t->lexeme))
+    {
+        warn("Classe '" + t->lexeme + "' já declarada.");
+    }
     match(ID);
     if (lToken->name == EXTENDS)
     {
@@ -261,6 +280,11 @@ Parser::statement()
     }
     else if (lToken->name == ID)
     {
+        Token* t = lToken;
+        if (!currentST->get(t->lexeme))
+        {
+            warn("Variável '" + t->lexeme + "' não declarada.");
+        }
         advance();
         if (lToken->name == LBRACKET)
         {
@@ -478,4 +502,18 @@ Parser::error(string str)
     cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
 
     exit(EXIT_FAILURE);
+}
+
+
+void
+Parser::warn(string str)
+{
+    const int line = scanner->getLine();
+    const int column = scanner->getColumn();
+
+    cout << scanner->getFileName() << ":" << line << ":" << column << ": aviso" << ": " << str << endl;
+
+    cout << setw(5) << line << " | " << scanner->getLineInput(line);
+    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
+
 }

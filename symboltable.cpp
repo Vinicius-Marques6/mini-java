@@ -70,6 +70,17 @@ SymbolTable::get(string name)
     return s->second;
 }
 
+STEntry*
+SymbolTable::getIdentifier(string name)
+{
+    STEntry* entry = get(name);
+    if (entry && entry->reserved)
+    {
+        return 0;
+    }
+    return entry;
+}
+
 SymbolTable*
 SymbolTable::getParent()
 {

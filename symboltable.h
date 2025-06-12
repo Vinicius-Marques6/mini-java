@@ -22,5 +22,6 @@ class SymbolTable
         void clear();
         bool isEmpty();
         STEntry* get(string);
+        STEntry* getIdentifier(string);
         SymbolTable* getParent();
 };
