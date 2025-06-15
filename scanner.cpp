@@ -324,10 +324,15 @@ Scanner::advance(const int i)
 void 
 Scanner::lexicalError(string msg)
 {
-    cout << fileName << ":" << line << ":" << column <<": " << msg << endl;
+    int col = column;
+    if (col < 1) {
+        col = 1;
+    }
 
-    cout << setw(5) << line << " | " << getLineInput(line) << endl;
-    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
+    cout << FILE_NAME << fileName << ":" << line << ":" << col <<": " << ERROR << "erro: " << RESET << msg << endl;
+
+    cout << LINE << setw(5) << line << " | " << RESET << getLineInput(line);
+    cout << LINE << setw(5) << line + 1 << " | " << ERROR << string(col - 1, ' ') << "^" << RESET << endl;
     
     exit(EXIT_FAILURE);
 }

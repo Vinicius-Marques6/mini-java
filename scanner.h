@@ -5,6 +5,13 @@
 #include <vector>
 #include <iomanip>
 
+#define FILE_NAME "\033[37m\033[1m"
+#define ERROR "\033[31m\033[1m"
+#define WARNING "\033[33m\033[1m"
+#define LINE "\033[90m"
+#define RESET "\033[0m"
+
+
 class Scanner 
 {
     private:

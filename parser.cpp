@@ -555,11 +555,15 @@ Parser::error(string str)
 {
     const int line = scanner->getLine();
     const int column = scanner->getColumn();
+    const int lexemeLen = lToken ? (int)lToken->lexeme.length() : 1;
 
-    cout << scanner->getFileName() << ":" << line << ":" << column << ": erro" << ": " << str << endl;
+    cout << FILE_NAME << scanner->getFileName() << ":" << line << ":" << column << ": " << ERROR << "erro" << ": " << RESET << str << endl;
 
-    cout << setw(5) << line << " | " << scanner->getLineInput(line);
-    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
+    cout << LINE << setw(5) << line << " | " << RESET << scanner->getLineInput(line);
+    cout << LINE << setw(5) << line + 1 << " | " << ERROR << string(column - lexemeLen, ' ');
+    if (lexemeLen > 1)
+        cout << string(lexemeLen - 1, '~');
+    cout << "^" << RESET << endl;
 
     exit(EXIT_FAILURE);
 }
@@ -570,10 +574,14 @@ Parser::warn(string str)
 {
     const int line = scanner->getLine();
     const int column = scanner->getColumn();
+    const int lexemeLen = lToken ? (int)lToken->lexeme.length() : 1;
 
-    cout << scanner->getFileName() << ":" << line << ":" << column << ": aviso" << ": " << str << endl;
+    cout << FILE_NAME << scanner->getFileName() << ":" << line << ":" << column << ": " << WARNING << "aviso" << ": " << RESET << str << endl;
 
-    cout << setw(5) << line << " | " << scanner->getLineInput(line);
-    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
+    cout << LINE << setw(5) << line << " | " << RESET << scanner->getLineInput(line);
+    cout << LINE << setw(5) << line + 1 << " | " << WARNING << string(column - lexemeLen, ' ');
+    if (lexemeLen > 1)
+        cout << string(lexemeLen - 1, '~');
+    cout << "^" << RESET << endl;
 
 }
