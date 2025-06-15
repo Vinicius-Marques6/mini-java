@@ -99,32 +99,34 @@ Parser::mainClass()
 {
     match(CLASS);
     Token* t = lToken;
-    if(currentST->getIdentifier(t->lexeme))
+    if (currentST->getIdentifier(t->lexeme))
     {
         warn("Classe '" + t->lexeme + "' já declarada.");
     }
     match(ID);
     currentST->add(new STEntry(t));
+    currentST = new SymbolTable(currentST);
     match(LBRACE);
     match(PUBLIC);
     match(STATIC);
     match(VOID);
     match(MAIN);
+    currentST = new SymbolTable(currentST);
     match(LPAREN);
     match(STRING);
     match(LBRACKET);
     match(RBRACKET);
     t = lToken;
     match(ID);
-    if(currentST->get(t->lexeme))
+    if(currentST->getIdentifier(t->lexeme))
     {
         warn("Parâmetro '" + t->lexeme + "' já declarado na função main.");
     }
-    currentST = new SymbolTable(currentST);
-    currentST->add(new STEntry(t, true));
+    currentST->add(new STEntry(t));
     match(RPAREN);
     match(LBRACE);
     statement();
+    currentST = currentST->getParent();
     match(RBRACE);
     currentST = currentST->getParent();
     match(RBRACE);
@@ -134,18 +136,27 @@ Parser::mainClass()
 void
 Parser::classDeclaration()
 {
+    Token* t;
     match(CLASS);
-    Token* t = lToken;
-    if(currentST->getIdentifier(t->lexeme))
+    t = lToken;
+    if (currentST->getIdentifier(t->lexeme))
     {
         warn("Classe '" + t->lexeme + "' já declarada.");
     }
     match(ID);
+    currentST->add(new STEntry(t));
     if (lToken->name == EXTENDS)
     {
         advance();
+        t = lToken;
+        // TODO: Essa bomba vai dar aviso de classe não declarada mesmo se for outro tipo de token
+        if (!currentST->getIdentifier(t->lexeme))
+        {
+            warn("Classe '" + t->lexeme + "' não declarada.");
+        }
         match(ID);
     }
+    currentST = new SymbolTable(currentST);
     match(LBRACE);
     while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
     {
@@ -155,6 +166,7 @@ Parser::classDeclaration()
     {
         methodDeclaration();
     }
+    currentST = currentST->getParent();
     match(RBRACE);
 }
 
@@ -163,7 +175,13 @@ void
 Parser::varDeclaration()
 {
     type();
+    Token* t = lToken;
+    if (currentST->getIdentifier(t->lexeme))
+    {
+        warn("Variável '" + t->lexeme + "' já declarada.");
+    }
     match(ID);
+    currentST->add(new STEntry(t));
     match(SEMICOLON);
 }
 
@@ -173,17 +191,36 @@ Parser::methodDeclaration()
 {
     match(PUBLIC);
     type();
+    Token* t = lToken;
+    if (currentST->getIdentifier(t->lexeme))
+    {
+        warn("Método '" + t->lexeme + "' já declarado.");
+    }
     match(ID);
+    currentST->add(new STEntry(t));
+    currentST = new SymbolTable(currentST);
     match(LPAREN);
     if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
     {
         type();
+        t = lToken;
+        if (currentST->getIdentifier(t->lexeme))
+        {
+            warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+        }
         match(ID);
+        currentST->add(new STEntry(t));
         while (lToken->name == COMMA)
         {
             advance();
             type();
+            t = lToken;
+            if (currentST->getIdentifier(t->lexeme))
+            {
+                warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+            }
             match(ID);
+            currentST->add(new STEntry(t));
         }
     }
     match(RPAREN);
@@ -207,6 +244,7 @@ Parser::methodDeclaration()
     match(RETURN);
     expr();
     match(SEMICOLON);
+    currentST = currentST->getParent();
     match(RBRACE);
 }
 
@@ -229,6 +267,11 @@ Parser::type()
     }
     else if (lToken->name == ID)
     {
+        Token* t = lToken;
+        if (!currentST->getIdentifier(t->lexeme))
+        {
+            warn("Tipo '" + t->lexeme + "' não declarado.");
+        }
         advance();
     }
     else
@@ -245,11 +288,13 @@ Parser::statement()
 {
     if (lToken->name == LBRACE)
     {
+        currentST = new SymbolTable(currentST);
         advance();
         while (lToken->name != RBRACE)
         {
             statement();
         }
+        currentST = currentST->getParent();
         match(RBRACE);
     }
     else if (lToken->name == IF)
@@ -281,7 +326,7 @@ Parser::statement()
     else if (lToken->name == ID)
     {
         Token* t = lToken;
-        if (!currentST->get(t->lexeme))
+        if (!currentST->getIdentifier(t->lexeme))
         {
             warn("Variável '" + t->lexeme + "' não declarada.");
         }
@@ -331,6 +376,11 @@ Parser::expr()
     }
     else if (lToken->name == ID)
     {
+        Token* t = lToken;
+        if (!currentST->getIdentifier(t->lexeme))
+        {
+            warn("Variável '" + t->lexeme + "' não declarada.");
+        }
         advance();
         exprLinha();
     }
@@ -351,6 +401,11 @@ Parser::expr()
         }
         else if (lToken->name == ID)
         {
+            Token* t = lToken;
+            if (!currentST->getIdentifier(t->lexeme))
+            {
+                warn("Classe '" + t->lexeme + "' não declarada.");
+            }
             advance();
             match(LPAREN);
             match(RPAREN);
@@ -399,6 +454,11 @@ Parser::exprLinha()
         }
         else if (lToken->name == ID)
         {
+            Token* t = lToken;
+            if (!currentST->getIdentifier(t->lexeme))
+            {
+                warn("Método '" + t->lexeme + "' não declarado.");
+            }
             advance();
             match(LPAREN);
             if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
