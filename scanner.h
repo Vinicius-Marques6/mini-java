@@ -5,6 +5,13 @@
 #include <vector>
 #include <iomanip>
 
+#define FILE_NAME "\033[37m\033[1m"
+#define ERROR "\033[31m\033[1m"
+#define WARNING "\033[33m\033[1m"
+#define LINE "\033[90m"
+#define RESET "\033[0m"
+
+
 class Scanner 
 {
     private:
@@ -15,6 +22,7 @@ class Scanner
         int line;
         int column;
         SymbolTable* st;
+        bool hadError = false;
     
     public:
     //Construtor
@@ -22,6 +30,7 @@ class Scanner
 
         int getLine();
         int getColumn();
+        bool getHadError();
         string getFileName();
         string getLineInput(int lineNumber);
     

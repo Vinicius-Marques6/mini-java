@@ -97,11 +97,16 @@ Scanner::nextToken()
 
     while(true)
     {
-        while(isspace(input[pos]))
+        while (isspace(input[pos]))
         {
-            advance();
+            if (input[pos] == '\t') {
+                input.replace(pos, 1, " ");
+            } else {
+                advance();
+            }
         }
-    
+
+
         // Comentários
         if (input[pos] == '/' && input[pos + 1] == '/')
         {
@@ -114,12 +119,19 @@ Scanner::nextToken()
         }
         else if (input[pos] == '/' && input[pos + 1] == '*')
         {
+            int savedLine = line;
+            int savedColumn = column;
+            int savedPos = pos;
             advance(2);
             while (true)
             {
                 if (input[pos] == '\0')
                 {
-                    lexicalError("Fim de arquivo inesperado");
+                    line = savedLine;
+                    column = savedColumn;
+                    pos = savedPos;
+                    lexicalError("Comentário não fechado");
+                    exit(EXIT_FAILURE);
                 }
                 if (input[pos] == '*' && input[pos + 1] == '/')
                 {
@@ -293,7 +305,9 @@ Scanner::nextToken()
     }
     else
     {
-        lexicalError("Caractere inválido: " + string(1, input[pos]));
+        tok = new Token(UNDEF, string(1, input[pos]));
+        advance();
+        lexicalError("Caractere inválido: " + tok->lexeme);
     }
 
 
@@ -324,10 +338,24 @@ Scanner::advance(const int i)
 void 
 Scanner::lexicalError(string msg)
 {
-    cout << fileName << ":" << line << ":" << column <<": " << msg << endl;
+    if (!hadError)
+        hadError = true;
 
-    cout << setw(5) << line << " | " << getLineInput(line) << endl;
-    cout << setw(5) << line + 1 << " | " << string(column - 1, ' ') << "^" << endl;
+    int col = column;
+    if (col < 1) {
+        col = 1;
+    }
+
+    cout << FILE_NAME << fileName << ":" << line << ":" << col <<": " << ERROR << "erro léxico: " << RESET << msg << endl;
+
+    cout << LINE << setw(5) << line << " | " << RESET << getLineInput(line);
+    cout << LINE << setw(5) << line + 1 << " | " << ERROR << string(col - 1, ' ') << "^" << RESET << endl;
     
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
+}
+
+bool
+Scanner::getHadError()
+{
+    return hadError;
 }

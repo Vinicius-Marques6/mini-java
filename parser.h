@@ -2,6 +2,7 @@
 
 #include "scanner.h"
 #include <iomanip>
+#include <set>
 
 class Parser
 {
@@ -10,10 +11,12 @@ class Parser
         Token* lToken;
         SymbolTable* globalST;
         SymbolTable* currentST;
+        bool hadError = false;
 
         void advance();
         void match(int);
         void initSymbolTable();
+        void synch(set<int>);
         
     public:
         Parser(string);
@@ -29,4 +32,5 @@ class Parser
         void exprLinha();
         void exprList();
         void error(string);
+        void warn(string);
 };
