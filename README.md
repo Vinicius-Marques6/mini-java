@@ -1,24 +1,21 @@
 # MiniJava
 
 MiniJava é um compilador contruído como trabalho prático para a disciplina de Compiladores I do curso de Ciência da Computação UFMS.
-
-## Estrutura do Projeto
-
-- `scanner.h/cpp`: Implementa o analisador léxico (Scanner) que identifica tokens no código fonte
-- `token.h`: Define os tipos de tokens suportados pela linguagem
-- `parser.h/cpp`: Implementa o analisador sintático (Parser) que valida a estrutura do programa
-- `principal.cpp`: Contém o ponto de entrada do programa
+#### Participantes:
+- Vinícius Marques Diniz
+- Mateus de Oliveira Sposo
+- Luis Alberto Kenji Imazaki
 
 ## Como Usar
 
 1. Compile o projeto:
 ```
-g++ -o compiler principal.cpp parser.cpp scanner.cpp
+g++ -o mj_compiler *.cpp
 ```
 
 2. Execute o compilador passando um arquivo fonte `.mj` como argumento:
 ```
-./compiler arquivo.mj
+./mj_compiler arquivo.mj
 ```
 
 ## Formato dos Arquivos Fonte
@@ -34,6 +31,10 @@ if (c > 0) {
     System.out.println(c);
 }
 ```
+
+# Anexo
+
+## Conjunto FIRST e FOLLOW
 
 FIRST(Program) = FIRST(MainClass) = {class} \
 FIRST(MainClass) = {class} \
