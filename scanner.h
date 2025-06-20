@@ -22,6 +22,7 @@ class Scanner
         int line;
         int column;
         SymbolTable* st;
+        bool hadError = false;
     
     public:
     //Construtor
@@ -29,6 +30,7 @@ class Scanner
 
         int getLine();
         int getColumn();
+        bool getHadError();
         string getFileName();
         string getLineInput(int lineNumber);
     

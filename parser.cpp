@@ -68,7 +68,10 @@ Parser::match(int t)
     if (lToken->name == t || lToken->attribute == t)
         advance();
     else
+    {
         error("Esperava '" + tokenToString(t) + "', encontrado '" + lToken->lexeme + "'");
+        throw 1;
+    }
 }
 
 void
@@ -78,18 +81,36 @@ Parser::run()
 
     program();
     
-    cout << "Compilação encerrada com sucesso!\n";
+    if (scanner->getHadError() || hadError)
+    {
+        cout << "Compilação encerrada com um ou mais erros.\n";
+    } else {
+        cout << "Compilação encerrada sem erros.\n";
+    }
 }
 
 // Program -> MainClass (ClassDeclaration)* EOF
 void
 Parser::program()
 {
-    mainClass();
-
-    while (lToken->name != END_OF_FILE)
+    try
     {
-        classDeclaration();
+        mainClass();
+    
+        while (lToken->name != END_OF_FILE)
+        {
+            classDeclaration();
+        }
+    
+        match(END_OF_FILE);
+    }
+    catch (...)
+    {
+        set<int> synchProgram = {
+            END_OF_FILE
+        };
+
+        synch(synchProgram);
     }
 }
 
@@ -97,185 +118,272 @@ Parser::program()
 void
 Parser::mainClass()
 {
-    match(CLASS);
-    Token* t = lToken;
-    if (currentST->getIdentifier(t->lexeme))
+    try
     {
-        warn("Classe '" + t->lexeme + "' já declarada.");
+        match(CLASS);
+        Token* t = lToken;
+        if (currentST->getIdentifier(t->lexeme))
+        {
+            warn("Classe '" + t->lexeme + "' já declarada.");
+        }
+        match(ID);
+        currentST->add(new STEntry(t));
+        currentST = new SymbolTable(currentST);
+        match(LBRACE);
+        match(PUBLIC);
+        match(STATIC);
+        match(VOID);
+        match(MAIN);
+        currentST = new SymbolTable(currentST);
+        match(LPAREN);
+        match(STRING);
+        match(LBRACKET);
+        match(RBRACKET);
+        t = lToken;
+        match(ID);
+        if(currentST->getIdentifier(t->lexeme))
+        {
+            warn("Parâmetro '" + t->lexeme + "' já declarado na função main.");
+        }
+        currentST->add(new STEntry(t));
+        match(RPAREN);
+        match(LBRACE);
+        statement();
+        currentST = currentST->getParent();
+        match(RBRACE);
+        currentST = currentST->getParent();
+        match(RBRACE);
     }
-    match(ID);
-    currentST->add(new STEntry(t));
-    currentST = new SymbolTable(currentST);
-    match(LBRACE);
-    match(PUBLIC);
-    match(STATIC);
-    match(VOID);
-    match(MAIN);
-    currentST = new SymbolTable(currentST);
-    match(LPAREN);
-    match(STRING);
-    match(LBRACKET);
-    match(RBRACKET);
-    t = lToken;
-    match(ID);
-    if(currentST->getIdentifier(t->lexeme))
+    catch (...)
     {
-        warn("Parâmetro '" + t->lexeme + "' já declarado na função main.");
+        set<int> synchMainClass = {
+            CLASS
+        };
+
+        synch(synchMainClass);
+
+        while (currentST != globalST)
+        {
+            currentST = currentST->getParent();
+        }
     }
-    currentST->add(new STEntry(t));
-    match(RPAREN);
-    match(LBRACE);
-    statement();
-    currentST = currentST->getParent();
-    match(RBRACE);
-    currentST = currentST->getParent();
-    match(RBRACE);
 }
 
 // ClassDeclaration -> class ID (extends ID)? { (VarDeclaration)* (MethodDeclaration)* }
 void
 Parser::classDeclaration()
 {
-    Token* t;
-    match(CLASS);
-    t = lToken;
-    if (currentST->getIdentifier(t->lexeme))
-    {
-        warn("Classe '" + t->lexeme + "' já declarada.");
-    }
-    match(ID);
-    currentST->add(new STEntry(t));
-    if (lToken->name == EXTENDS)
-    {
-        advance();
+    try {
+        Token* t;
+        match(CLASS);
         t = lToken;
-        // TODO: Essa bomba vai dar aviso de classe não declarada mesmo se for outro tipo de token
-        if (!currentST->getIdentifier(t->lexeme))
+        if (currentST->getIdentifier(t->lexeme))
         {
-            warn("Classe '" + t->lexeme + "' não declarada.");
+            warn("Classe '" + t->lexeme + "' já declarada.");
         }
         match(ID);
+        currentST->add(new STEntry(t));
+        if (lToken->name == EXTENDS)
+        {
+            advance();
+            t = lToken;
+            // TODO: Essa bomba vai dar aviso de classe não declarada mesmo se for outro tipo de token
+            if (!currentST->getIdentifier(t->lexeme))
+            {
+                warn("Classe '" + t->lexeme + "' não declarada.");
+            }
+            match(ID);
+        }
+        currentST = new SymbolTable(globalST);
+        match(LBRACE);
+        while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+        {
+            varDeclaration();
+        }
+        while (lToken->name == PUBLIC)
+        {
+            methodDeclaration();
+        }
+        currentST = currentST->getParent();
+        match(RBRACE);
     }
-    currentST = new SymbolTable(currentST);
-    match(LBRACE);
-    while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+    catch (...)
     {
-        varDeclaration();
+
+        set<int> synchClassDec = {
+            CLASS
+        };
+
+        synch(synchClassDec);
+
+        while (currentST != globalST)
+        {
+            currentST = currentST->getParent();
+        }
     }
-    while (lToken->name == PUBLIC)
-    {
-        methodDeclaration();
-    }
-    currentST = currentST->getParent();
-    match(RBRACE);
 }
 
 // VarDeclaration -> type ID ;
 void
 Parser::varDeclaration()
 {
-    type();
-    Token* t = lToken;
-    if (currentST->getIdentifier(t->lexeme))
-    {
-        warn("Variável '" + t->lexeme + "' já declarada.");
+    try {
+        type();
+        Token* t = lToken;
+        if (currentST->getIdentifier(t->lexeme))
+        {
+            warn("Variável '" + t->lexeme + "' já declarada.");
+        }
+        match(ID);
+        currentST->add(new STEntry(t));
+        match(SEMICOLON);
     }
-    match(ID);
-    currentST->add(new STEntry(t));
-    match(SEMICOLON);
+    catch (...)
+    {
+        set<int> synchVarDec = {
+            INT,
+            BOOLEAN,
+            ID,
+            PUBLIC,
+            RBRACE,
+            LBRACE,
+            IF,
+            WHILE,
+            SYSTEM_OUT_PRINTLN,
+            RETURN
+        };
+
+        synch(synchVarDec);
+    }
 }
 
 // MethodDeclaration -> public Type ID ( (Params)? ) { (VarDeclaration)* (Statement)* return Expr ; }
 void
 Parser::methodDeclaration()
 {
-    match(PUBLIC);
-    type();
-    Token* t = lToken;
-    if (currentST->getIdentifier(t->lexeme))
-    {
-        warn("Método '" + t->lexeme + "' já declarado.");
-    }
-    match(ID);
-    currentST->add(new STEntry(t));
-    currentST = new SymbolTable(currentST);
-    match(LPAREN);
-    if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
-    {
+    try {
+        match(PUBLIC);
         type();
-        t = lToken;
+        Token* t = lToken;
         if (currentST->getIdentifier(t->lexeme))
         {
-            warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+            warn("Método '" + t->lexeme + "' já declarado.");
         }
         match(ID);
         currentST->add(new STEntry(t));
-        while (lToken->name == COMMA)
-        {
-            advance();
-            type();
-            t = lToken;
-            if (currentST->getIdentifier(t->lexeme))
+        currentST = new SymbolTable(currentST);
+        match(LPAREN);
+        try {
+            if (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
             {
-                warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+                type();
+                t = lToken;
+                if (currentST->getIdentifier(t->lexeme))
+                {
+                    warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+                }
+                match(ID);
+                currentST->add(new STEntry(t));
+                while (lToken->name == COMMA)
+                {
+                    advance();
+                    type();
+                    t = lToken;
+                    if (currentST->getIdentifier(t->lexeme))
+                    {
+                        warn("Parâmetro '" + t->lexeme + "' já declarado no método.");
+                    }
+                    match(ID);
+                    currentST->add(new STEntry(t));
+                }
             }
-            match(ID);
-            currentST->add(new STEntry(t));
         }
-    }
-    match(RPAREN);
-    match(LBRACE);
-    while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
-    {
-        Token* peekedToken = scanner->peekToken();
-        // Pode ser que este ID seja das derivações do Statement (Statement -> ID ( [ Expr ] )? = Expr ;)
-        if(lToken->name == ID && (peekedToken->name == LBRACKET || peekedToken->name == ASSIGN))
+        catch (...)
         {
-            delete peekedToken; // Libera o token que foi pego pelo peek
-            break;
+            set<int> synchParams = {
+                RPAREN
+            };
+
+            synch(synchParams);
         }
-        delete peekedToken;
-        varDeclaration();
+        match(RPAREN);
+        match(LBRACE);
+        while (lToken->name == INT || lToken->name == BOOLEAN || lToken->name == ID)
+        {
+            Token* peekedToken = scanner->peekToken();
+            // Pode ser que este ID seja das derivações do Statement (Statement -> ID ( [ Expr ] )? = Expr ;)
+            if(lToken->name == ID && (peekedToken->name == LBRACKET || peekedToken->name == ASSIGN))
+            {
+                delete peekedToken; // Libera o token que foi pego pelo peek
+                break;
+            }
+            delete peekedToken;
+            varDeclaration();
+        }
+        while (lToken->name != RETURN)
+        {
+            statement();
+        }
+        match(RETURN);
+        expr();
+        match(SEMICOLON);
+        currentST = currentST->getParent();
+        match(RBRACE);
     }
-    while (lToken->name != RETURN)
+    catch (...)
     {
-        statement();
+        currentST = currentST->getParent();
+
+        set<int> synchMethDec = {
+            PUBLIC,
+            RBRACE,
+        };
+
+        synch(synchMethDec);
     }
-    match(RETURN);
-    expr();
-    match(SEMICOLON);
-    currentST = currentST->getParent();
-    match(RBRACE);
 }
 
 // Type -> int ([])? | boolean | ID
 void
 Parser::type()
 {
-    if (lToken->name == INT)
+    try
     {
-        advance();
-        if (lToken->name == LBRACKET)
+        if (lToken->name == INT)
         {
             advance();
-            match(RBRACKET);
+            if (lToken->name == LBRACKET)
+            {
+                advance();
+                match(RBRACKET);
+            }
         }
-    }
-    else if (lToken->name == BOOLEAN)
-    {
-        advance();
-    }
-    else if (lToken->name == ID)
-    {
-        Token* t = lToken;
-        if (!currentST->getIdentifier(t->lexeme))
+        else if (lToken->name == BOOLEAN)
         {
-            warn("Tipo '" + t->lexeme + "' não declarado.");
+            advance();
         }
-        advance();
+        else if (lToken->name == ID)
+        {
+            Token* t = lToken;
+            if (!currentST->getIdentifier(t->lexeme))
+            {
+                warn("Tipo '" + t->lexeme + "' não declarado.");
+            }
+            advance();
+        }
+        else {
+            error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
+            throw 1;
+        }
     }
-    else
-        error("Esperava 'int', 'boolean' ou 'ID', encontrado '" + lToken->lexeme + "'");
+    catch (...)
+    {
+        set<int> synchType = {
+            INT
+        };
+
+        synch(synchType);
+    }
 }
 
 // Statement -> { (Statement)* }
@@ -286,63 +394,90 @@ Parser::type()
 void
 Parser::statement()
 {
-    if (lToken->name == LBRACE)
+    try
     {
-        currentST = new SymbolTable(currentST);
-        advance();
-        while (lToken->name != RBRACE)
+        if (lToken->name == LBRACE)
         {
-            statement();
+            currentST = new SymbolTable(currentST);
+            advance();
+            while (lToken->name != RBRACE)
+            {
+                statement();
+            }
+            currentST = currentST->getParent();
+            match(RBRACE);
         }
-        currentST = currentST->getParent();
-        match(RBRACE);
-    }
-    else if (lToken->name == IF)
-    {
-        advance();
-        match(LPAREN);
-        expr();
-        match(RPAREN);
-        statement();
-        match(ELSE);
-        statement();
-    }
-    else if (lToken->name == WHILE)
-    {
-        advance();
-        match(LPAREN);
-        expr();
-        match(RPAREN);
-        statement();
-    }
-    else if (lToken->name == SYSTEM_OUT_PRINTLN)
-    {
-        advance();
-        match(LPAREN);
-        expr();
-        match(RPAREN);
-        match(SEMICOLON);
-    }
-    else if (lToken->name == ID)
-    {
-        Token* t = lToken;
-        if (!currentST->getIdentifier(t->lexeme))
-        {
-            warn("Variável '" + t->lexeme + "' não declarada.");
-        }
-        advance();
-        if (lToken->name == LBRACKET)
+        else if (lToken->name == IF)
         {
             advance();
+            match(LPAREN);
             expr();
-            match(RBRACKET);
+            match(RPAREN);
+            statement();
+            match(ELSE);
+            statement();
         }
-        match(ASSIGN);
-        expr();
-        match(SEMICOLON);
+        else if (lToken->name == WHILE)
+        {
+            advance();
+            match(LPAREN);
+            expr();
+            match(RPAREN);
+            statement();
+        }
+        else if (lToken->name == SYSTEM_OUT_PRINTLN)
+        {
+            advance();
+            match(LPAREN);
+            expr();
+            match(RPAREN);
+            match(SEMICOLON);
+        }
+        else if (lToken->name == ID)
+        {
+            Token* t = lToken;
+            if (!currentST->getIdentifier(t->lexeme))
+            {
+                warn("Variável '" + t->lexeme + "' não declarada.");
+            }
+            advance();
+            if (lToken->name == LBRACKET)
+            {
+                advance();
+                expr();
+                match(RBRACKET);
+            }
+            match(ASSIGN);
+            expr();
+            match(SEMICOLON);
+        }
+        else
+        {
+            error("Esperava uma instrução, encontrado '" + lToken->lexeme + "'");
+            throw 1;
+        }
     }
-    else
-        error("Esperava uma instrução, encontrado '" + lToken->lexeme + "'");
+    catch (...)
+    {
+        // Aqui é um apelo para os escopos não se perderem.
+        if (lToken->name != RBRACE)
+        {
+            currentST = currentST->getParent();
+        }
+
+        set<int> synchStmt = {
+            LBRACE,
+            IF,
+            WHILE,
+            ID,
+            SYSTEM_OUT_PRINTLN,
+            RBRACE,
+            ELSE,
+            RETURN
+        };
+
+        synch(synchStmt);
+    }
 }
 
 // Expr -> INTEGER ExprLinha
@@ -359,79 +494,107 @@ Parser::statement()
 void
 Parser::expr()
 {
-    if (lToken->name == INTEGER)
+    try
     {
-        advance();
-        exprLinha();
-    }
-    else if (lToken->name == TRUE)
-    {
-        advance();
-        exprLinha();
-    }
-    else if (lToken->name == FALSE)
-    {
-        advance();
-        exprLinha();
-    }
-    else if (lToken->name == ID)
-    {
-        Token* t = lToken;
-        if (!currentST->getIdentifier(t->lexeme))
-        {
-            warn("Variável '" + t->lexeme + "' não declarada.");
-        }
-        advance();
-        exprLinha();
-    }
-    else if (lToken->name == THIS)
-    {
-        advance();
-        exprLinha();
-    }
-    else if (lToken->name == NEW)
-    {
-        advance();
-        if (lToken->name == INT)
+        if (lToken->name == INTEGER)
         {
             advance();
-            match(LBRACKET);
-            expr();
-            match(RBRACKET);
+            exprLinha();
+        }
+        else if (lToken->name == TRUE)
+        {
+            advance();
+            exprLinha();
+        }
+        else if (lToken->name == FALSE)
+        {
+            advance();
+            exprLinha();
         }
         else if (lToken->name == ID)
         {
             Token* t = lToken;
             if (!currentST->getIdentifier(t->lexeme))
             {
-                warn("Classe '" + t->lexeme + "' não declarada.");
+                warn("Variável '" + t->lexeme + "' não declarada.");
             }
             advance();
-            match(LPAREN);
+            exprLinha();
+        }
+        else if (lToken->name == THIS)
+        {
+            advance();
+            exprLinha();
+        }
+        else if (lToken->name == NEW)
+        {
+            advance();
+            if (lToken->name == INT)
+            {
+                advance();
+                match(LBRACKET);
+                expr();
+                match(RBRACKET);
+            }
+            else if (lToken->name == ID)
+            {
+                Token* t = lToken;
+                if (!currentST->getIdentifier(t->lexeme))
+                {
+                    warn("Classe '" + t->lexeme + "' não declarada.");
+                }
+                advance();
+                match(LPAREN);
+                match(RPAREN);
+            }
+            else
+            {
+                error("Esperava 'int' ou 'ID' após 'new', encontrado '" + lToken->lexeme + "'");
+                throw 1;
+            }
+            exprLinha();
+        }
+        else if (lToken->name == NOT)
+        {
+            advance();
+            expr();
+            exprLinha();
+        }
+        else if (lToken->name == LPAREN)
+        {
+            advance();
+            expr();
             match(RPAREN);
+            exprLinha();
         }
         else
         {
-            error("Esperava 'int' ou 'ID' após 'new', encontrado '" + lToken->lexeme + "'");
+            error("Esperava uma expressão, encontrado '" + lToken->lexeme + "'");
+            throw 1;
         }
-        exprLinha();
     }
-    else if (lToken->name == NOT)
+    catch (...)
     {
-        advance();
-        expr();
+        set<int> synchExpr = {
+            AND,
+            LT,
+            GT,
+            PLUS,
+            MINUS,
+            MULTIPLY,
+            DIVIDE,
+            EQUAL,
+            NOT_EQUAL,
+            RPAREN,
+            LBRACKET,
+            RBRACKET,
+            SEMICOLON,
+            DOT,
+        };
+
+        synch(synchExpr);
+
         exprLinha();
-    }
-    else if (lToken->name == LPAREN)
-    {
-        advance();
-        expr();
-        match(RPAREN);
-        exprLinha();
-    }
-    else
-    {
-        error("Esperava uma expressão, encontrado '" + lToken->lexeme + "'");
     }
 }
 
@@ -445,46 +608,71 @@ Parser::expr()
 void
 Parser::exprLinha()
 {
-    if (lToken->name == DOT)
+    try
     {
-        advance();
-        if (lToken->name == LENGTH)
+        if (lToken->name == DOT)
         {
             advance();
-        }
-        else if (lToken->name == ID)
-        {
-            Token* t = lToken;
-            if (!currentST->getIdentifier(t->lexeme))
+            if (lToken->name == LENGTH)
             {
-                warn("Método '" + t->lexeme + "' não declarado.");
+                advance();
             }
+            else if (lToken->name == ID)
+            {
+                Token* t = lToken;
+                if (!currentST->getIdentifier(t->lexeme))
+                {
+                    warn("Método '" + t->lexeme + "' não declarado.");
+                }
+                advance();
+                match(LPAREN);
+                if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+                {
+                    exprList();
+                }
+                match(RPAREN);
+            }
+            else
+            {
+                error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
+                throw 1;
+            }
+            exprLinha();
+        }
+        else if (lToken->name == PLUS || lToken->name == MINUS || lToken->name == MULTIPLY || lToken->name == DIVIDE || lToken->name == AND || lToken->name == LT || lToken->name == GT || lToken->name == EQUAL || lToken->name == NOT_EQUAL)
+        {
             advance();
-            match(LPAREN);
-            if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
-            {
-                exprList();
-            }
-            match(RPAREN);
+            expr();
+            exprLinha();
         }
-        else
+        else if (lToken->name == LBRACKET)
         {
-            error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
+            advance();
+            expr();
+            match(RBRACKET);
+            exprLinha();
         }
-        exprLinha();
     }
-    else if (lToken->name == PLUS || lToken->name == MINUS || lToken->name == MULTIPLY || lToken->name == DIVIDE || lToken->name == AND || lToken->name == LT || lToken->name == GT || lToken->name == EQUAL || lToken->name == NOT_EQUAL)
+    catch (...)
     {
-        advance();
-        expr();
-        exprLinha();
-    }
-    else if (lToken->name == LBRACKET)
-    {
-        advance();
-        expr();
-        match(RBRACKET);
-        exprLinha();
+        set<int> synchExpr = {
+            AND,
+            LT,
+            GT,
+            PLUS,
+            MINUS,
+            MULTIPLY,
+            DIVIDE,
+            EQUAL,
+            NOT_EQUAL,
+            RPAREN,
+            LBRACKET,
+            RBRACKET,
+            SEMICOLON,
+            DOT,
+        };
+
+        synch(synchExpr);
     }
 }
 
@@ -492,18 +680,30 @@ Parser::exprLinha()
 void
 Parser::exprList()
 {
-    if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+    try
     {
-        expr();
-        while (lToken->name == COMMA)
+        if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
         {
-            advance();
             expr();
+            while (lToken->name == COMMA)
+            {
+                advance();
+                expr();
+            }
+        }
+        else if (lToken->name != RPAREN)
+        {
+            error("Esperava uma expressão ou ')', encontrado '" + lToken->lexeme + "'");
+            throw 1;
         }
     }
-    else if (lToken->name != RPAREN)
+    catch (...)
     {
-        error("Esperava uma expressão ou ')', encontrado '" + lToken->lexeme + "'");
+        set<int> synchExprList = {
+            RPAREN
+        };
+
+        synch(synchExprList);
     }
 }
 
@@ -551,6 +751,21 @@ Parser::initSymbolTable()
 }
 
 void
+Parser::synch(set<int> synchSet)
+{
+    /*
+     * É tentando implementar o synch que me despeço da minha sanidade.
+    */
+    if (!hadError)
+        hadError = true;
+
+    while (synchSet.find(lToken->name) == synchSet.end() && lToken->name != END_OF_FILE)
+    {
+        advance();
+    }
+}
+
+void
 Parser::error(string str)
 {
     const int line = scanner->getLine();
@@ -565,7 +780,7 @@ Parser::error(string str)
         cout << string(lexemeLen - 1, '~');
     cout << "^" << RESET << endl;
 
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
 }
 
 
