@@ -148,7 +148,7 @@ Scanner::nextToken()
     //Fim de arquivo
     if (input[pos] == '\0')
     {
-        tok = new Token(END_OF_FILE);
+        tok = new Token(END_OF_FILE, "EOF");
     }
     // Operadores aritméticos
     else if (input[pos] == '+')
@@ -345,10 +345,16 @@ Scanner::lexicalError(string msg)
     if (col < 1) {
         col = 1;
     }
+    string lineInput = getLineInput(line);
 
     cout << FILE_NAME << fileName << ":" << line << ":" << col <<": " << ERROR << "erro léxico: " << RESET << msg << endl;
 
-    cout << LINE << setw(5) << line << " | " << RESET << getLineInput(line);
+    if (lineInput.empty())
+        return;
+
+    cout << LINE << setw(5) << line << " | " << RESET << lineInput;
+    if (lineInput.back() != '\n')
+        cout << endl;
     cout << LINE << setw(5) << line + 1 << " | " << ERROR << string(col - 1, ' ') << "^" << RESET << endl;
     
     //exit(EXIT_FAILURE);

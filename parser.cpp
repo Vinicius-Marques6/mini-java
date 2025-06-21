@@ -157,15 +157,12 @@ Parser::mainClass()
     catch (...)
     {
         set<int> synchMainClass = {
-            CLASS
+            END_OF_FILE
         };
 
         synch(synchMainClass);
 
-        while (currentST != globalST)
-        {
-            currentST = currentST->getParent();
-        }
+        currentST = globalST;
     }
 }
 
@@ -211,15 +208,12 @@ Parser::classDeclaration()
     {
 
         set<int> synchClassDec = {
-            CLASS
+            END_OF_FILE
         };
 
         synch(synchClassDec);
 
-        while (currentST != globalST)
-        {
-            currentST = currentST->getParent();
-        }
+        currentST = globalST;
     }
 }
 
@@ -241,9 +235,6 @@ Parser::varDeclaration()
     catch (...)
     {
         set<int> synchVarDec = {
-            INT,
-            BOOLEAN,
-            ID,
             PUBLIC,
             RBRACE,
             LBRACE,
@@ -335,7 +326,6 @@ Parser::methodDeclaration()
         currentST = currentST->getParent();
 
         set<int> synchMethDec = {
-            PUBLIC,
             RBRACE,
         };
 
@@ -379,7 +369,7 @@ Parser::type()
     catch (...)
     {
         set<int> synchType = {
-            INT
+            END_OF_FILE
         };
 
         synch(synchType);
@@ -466,11 +456,6 @@ Parser::statement()
         }
 
         set<int> synchStmt = {
-            LBRACE,
-            IF,
-            WHILE,
-            ID,
-            SYSTEM_OUT_PRINTLN,
             RBRACE,
             ELSE,
             RETURN
@@ -612,32 +597,56 @@ Parser::exprLinha()
     {
         if (lToken->name == DOT)
         {
-            advance();
-            if (lToken->name == LENGTH)
+            try
             {
                 advance();
-            }
-            else if (lToken->name == ID)
-            {
-                Token* t = lToken;
-                if (!currentST->getIdentifier(t->lexeme))
+                if (lToken->name == LENGTH)
                 {
-                    warn("Método '" + t->lexeme + "' não declarado.");
+                    advance();
                 }
-                advance();
-                match(LPAREN);
-                if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+                else if (lToken->name == ID)
                 {
-                    exprList();
+                    Token* t = lToken;
+                    if (!currentST->getIdentifier(t->lexeme))
+                    {
+                        warn("Método '" + t->lexeme + "' não declarado.");
+                    }
+                    advance();
+                    match(LPAREN);
+                    if (lToken->name == INTEGER || lToken->name == TRUE || lToken->name == FALSE || lToken->name == ID || lToken->name == THIS || lToken->name == NEW || lToken->name == NOT || lToken->name == LPAREN)
+                    {
+                        exprList();
+                    }
+                    match(RPAREN);
                 }
-                match(RPAREN);
+                else
+                {
+                    error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
+                    throw 1;
+                }
+                exprLinha();
             }
-            else
+            catch (...)
             {
-                error("Esperava 'length' ou 'ID' após '.', encontrado '" + lToken->lexeme + "'");
-                throw 1;
+                set<int> synchDotSuffix = {
+                    AND,
+                    LT,
+                    GT,
+                    PLUS,
+                    MINUS,
+                    MULTIPLY,
+                    DIVIDE,
+                    EQUAL,
+                    NOT_EQUAL,
+                    RPAREN,
+                    LBRACKET,
+                    RBRACKET,
+                    SEMICOLON,
+                    DOT
+                };
+
+                synch(synchDotSuffix);
             }
-            exprLinha();
         }
         else if (lToken->name == PLUS || lToken->name == MINUS || lToken->name == MULTIPLY || lToken->name == DIVIDE || lToken->name == AND || lToken->name == LT || lToken->name == GT || lToken->name == EQUAL || lToken->name == NOT_EQUAL)
         {
@@ -656,20 +665,9 @@ Parser::exprLinha()
     catch (...)
     {
         set<int> synchExpr = {
-            AND,
-            LT,
-            GT,
-            PLUS,
-            MINUS,
-            MULTIPLY,
-            DIVIDE,
-            EQUAL,
-            NOT_EQUAL,
             RPAREN,
-            LBRACKET,
             RBRACKET,
             SEMICOLON,
-            DOT,
         };
 
         synch(synchExpr);
@@ -771,10 +769,16 @@ Parser::error(string str)
     const int line = scanner->getLine();
     const int column = scanner->getColumn();
     const int lexemeLen = lToken ? (int)lToken->lexeme.length() : 1;
+    string lineInput = scanner->getLineInput(line);
 
     cout << FILE_NAME << scanner->getFileName() << ":" << line << ":" << column << ": " << ERROR << "erro" << ": " << RESET << str << endl;
 
-    cout << LINE << setw(5) << line << " | " << RESET << scanner->getLineInput(line);
+    if (lineInput.empty())
+        return;
+
+    cout << LINE << setw(5) << line << " | " << RESET << lineInput;
+    if (lineInput.back() != '\n')
+        cout << endl;
     cout << LINE << setw(5) << line + 1 << " | " << ERROR << string(column - lexemeLen, ' ');
     if (lexemeLen > 1)
         cout << string(lexemeLen - 1, '~');
@@ -790,10 +794,16 @@ Parser::warn(string str)
     const int line = scanner->getLine();
     const int column = scanner->getColumn();
     const int lexemeLen = lToken ? (int)lToken->lexeme.length() : 1;
+    string lineInput = scanner->getLineInput(line);
 
     cout << FILE_NAME << scanner->getFileName() << ":" << line << ":" << column << ": " << WARNING << "aviso" << ": " << RESET << str << endl;
 
-    cout << LINE << setw(5) << line << " | " << RESET << scanner->getLineInput(line);
+    if (lineInput.empty())
+        return;
+
+    cout << LINE << setw(5) << line << " | " << RESET << lineInput;
+    if (lineInput.back() != '\n')
+        cout << endl;
     cout << LINE << setw(5) << line + 1 << " | " << WARNING << string(column - lexemeLen, ' ');
     if (lexemeLen > 1)
         cout << string(lexemeLen - 1, '~');
