@@ -18,20 +18,6 @@ g++ -o mj_compiler *.cpp
 ./mj_compiler arquivo.mj
 ```
 
-## Formato dos Arquivos Fonte
-
-Os arquivos fonte devem ter a extensão `.mj` e seguir a sintaxe do Mini-Java. Por exemplo:
-
-```java
-int a = 2;
-int b = 4;
-int c = a + b;
-
-if (c > 0) {
-    System.out.println(c);
-}
-```
-
 # Anexo
 
 ## Conjunto FIRST e FOLLOW
