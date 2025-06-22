@@ -29,7 +29,8 @@ Scanner::Scanner(string input, SymbolTable* table)
         inputFile.close();
     }
     else 
-        cout << "Unable to open file\n"; 
+        cout << "Unable to open file\n";
+        exit(EXIT_FAILURE);
 
     //A próxima linha deve ser comentada posteriormente.
     //Ela é utilizada apenas para verificar se o 
